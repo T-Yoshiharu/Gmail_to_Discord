@@ -16,7 +16,7 @@ function mail_ib() {
   threads.forEach(function (thread) {
     const messages = thread.getMessages();
 
-    const payloads = messages.map(function (message) {
+    let payloads = messages.map(function (message) {
       //  message.markRead();  // メールを既読に設定する
       const id = message.getId();
       const from = message.getFrom();
@@ -65,6 +65,7 @@ function mail_ib() {
         }
       }
     })
+    payloads = payloads.filter(Boolean);
     if (payloads.length > 0) {
       UrlFetchApp.fetchAll(payloads);
     }
