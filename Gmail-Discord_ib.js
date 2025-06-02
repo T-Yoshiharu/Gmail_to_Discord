@@ -5,7 +5,10 @@ function mail_ib() {
   const jsonStr = id_file.getBlob().getDataAsString("UTF-8");
   const IDs = JSON.parse(jsonStr);
 
-  const data = GmailApp.search('label:intebro全体 label:unread');  // all-intebroのスレッドを取得
+  // all-intebroのスレッドをGmailから取得
+  let now = new Date()
+  let today = Utilities.formatDate(now, "JST", "yyyy/MM/dd");
+  const data = GmailApp.search(`label:intebro全体 after:${today}`);
   const threads = data.reverse();
 
   if (threads.length == 0) {
