@@ -7,6 +7,7 @@ function mail_ib() {
 
   // all-intebroのスレッドをGmailから取得
   let now = new Date()
+  now.setDate(now.getDate() - 1)
   let today = Utilities.formatDate(now, "JST", "yyyy/MM/dd");
   const data = GmailApp.search(`label:intebro全体 after:${today}`);
   const threads = data.reverse();
@@ -25,7 +26,7 @@ function mail_ib() {
       const from = message.getFrom();
       const subject = message.getSubject();
       const plainBody = message.getPlainBody();
-      const date = Utilities.formatDate(message.getDate(), "JST", "yyyy/MM/dd hh:mm");
+      const date = Utilities.formatDate(message.getDate(), "JST", "yyyy/MM/dd kk:mm");
 
       const sheet = SpreadsheetApp.openById(IDs.data_sheet).getSheetByName("mails"); // スプレッドシートを取得
       const lastRow = sheet.getLastRow(); // 既にスプレッドシートにある件名と日付を取得
