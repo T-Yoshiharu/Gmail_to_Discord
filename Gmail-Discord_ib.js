@@ -42,6 +42,13 @@ function mail_ib() {
         ];
         values.push(record);
         unsend = true;
+
+        // 機材借用申請の場合に追加の処理をする
+        const folderId = IDs.applicationFolder_id;
+        const application_Webhook = IDs.application_Webhook;
+        if (subject.includes('機材借用申請')) {
+          application(message, folderId, application_Webhook);
+        }
       }
 
       if (values.length > 0) {
@@ -74,4 +81,80 @@ function mail_ib() {
       UrlFetchApp.fetchAll(payloads);
     }
   })
+}
+
+function application(message_data, folderId, webhookURL) {
+  // const filter = 'label:intebro全体-機材借用申請 ';
+  const subject = message_data.getSubject();
+  const title = subject.match(/_([^_]*)_/)[1]
+  const applicationDate = subject.match(/([^_]*)_/)[1];
+  const from = message_data.getFrom();
+  const fromName = from.match(/"([^"]*)"/)[1]
+  const date_time = Utilities.formatDate(message_data.getDate(), "JST", "yyyy/MM/dd kk:mm");
+  const date = Utilities.formatDate(message_data.getDate(), "JST", "yyyy/MM/dd");
+
+  const attachments = message.getAttachments();
+  let folder = DriveApp.getFolderById(folderId);
+  for (var k = 0; k < attachments.length; k++) {
+    var attachment = attachments[k];
+    let fileName = attachment.getName();
+
+    // 添付ファイル名にキーワードが含まれているか確認
+    if (fileName.indexOf('機材借用') !== -1) {
+      // ファイルを保存
+      let file = folder.createFile(attachment);
+      let f_Name = fileName;
+
+      // ファイルのリンクを取得
+      let fileUrl = file.getUrl();
+    }
+  }
+
+  const payload = {
+    content: `### 機材借用申請通知 (${date_time})`,
+    embeds: [{
+      title: `[${title}]の機材借用申請`,
+      author: {
+        name: `From; ${from}`,
+      },
+      description: `${subject}`,
+      fields: [
+        {
+          name: "件名",
+          value: `${title}`,
+          inline: false,
+        },
+        {
+          name: "借用年月日",
+          value: `${applicationDate}`,
+          inline: false,
+        },
+        {
+          name: "申請者",
+          value: `${fromName}`,
+          inline: false,
+        },
+        {
+          name: "申請年月日",
+          value: `${date}`,
+          inline: false,
+        },
+        {
+          name: "機材借用申請書ファイル",
+          value: `[${f_Name}](${fileUrl})`,
+          inline: false,
+        }],
+    }],
+
+  }
+
+  var response = UrlFetchApp.fetch(
+    webhookURL,
+    {
+      method: "POST",
+      contentType: "application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true,
+    }
+  );
 }
