@@ -44,9 +44,9 @@ function mail_ib() {
         unsend = true;
 
         // 機材借用申請の場合に追加の処理をする
-        const folderId = IDs.applicationFolder_id;
-        const application_Webhook = IDs.application_Webhook;
         if (subject.includes('機材借用申請')) {
+          const folderId = IDs.applicationFolder_id;
+          const application_Webhook = IDs.application_Webhook;
           application(message, folderId, application_Webhook);
         }
       }
@@ -93,8 +93,10 @@ function application(message_data, folderId, webhookURL) {
   const date_time = Utilities.formatDate(message_data.getDate(), "JST", "yyyy/MM/dd kk:mm");
   const date = Utilities.formatDate(message_data.getDate(), "JST", "yyyy/MM/dd");
 
-  const attachments = message.getAttachments();
+  const attachments = message_data.getAttachments();
   let folder = DriveApp.getFolderById(folderId);
+  let f_Names = [];
+  let fileUrls = [];
   for (var k = 0; k < attachments.length; k++) {
     var attachment = attachments[k];
     let fileName = attachment.getName();
@@ -103,10 +105,9 @@ function application(message_data, folderId, webhookURL) {
     if (fileName.indexOf('機材借用') !== -1) {
       // ファイルを保存
       let file = folder.createFile(attachment);
-      let f_Name = fileName;
-
+      f_Names.push(fileName);
       // ファイルのリンクを取得
-      let fileUrl = file.getUrl();
+      fileUrls.push(file.getUrl());
     }
   }
 
@@ -114,6 +115,7 @@ function application(message_data, folderId, webhookURL) {
     content: `### 機材借用申請通知 (${date_time})`,
     embeds: [{
       title: `[${title}]の機材借用申請`,
+      color: 0x0000ff,
       author: {
         name: `From; ${from}`,
       },
@@ -141,11 +143,29 @@ function application(message_data, folderId, webhookURL) {
         },
         {
           name: "機材借用申請書ファイル",
-          value: `[${f_Name}](${fileUrl})`,
+          value: ``,
           inline: false,
         }],
     }],
 
+  }
+
+  if (f_Names) {
+    let value = "";
+    for (let i = 0; i < f_Names.length; i++) {
+      value += `- [${f_Names[i]}](${fileUrls[i]})\n`
+    }
+    payload.embeds[0].fields[4] = {
+      name: "機材借用申請書ファイル",
+      value: `${value}`,
+      inline: false,
+    }
+  } else {
+    payload.embeds[0].fields[4] = {
+      name: "機材借用申請書ファイル",
+      value: `機材借用申請書ファイルがありません!`,
+      inline: false,
+    }
   }
 
   var response = UrlFetchApp.fetch(
