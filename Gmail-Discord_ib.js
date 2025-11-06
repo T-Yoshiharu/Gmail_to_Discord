@@ -86,10 +86,12 @@ function mail_ib() {
 function application(message_data, folderId, webhookURL) {
   // const filter = 'label:intebro全体-機材借用申請 ';
   const subject = message_data.getSubject();
-  const title = subject.match(/_([^_]*)_/)[1]
-  const applicationDate = subject.match(/([^_]*)_/)[1];
+  const titleMatch = subject.match(/_([^_]*)_/);
+  const title = titleMatch ? titleMatch[1] : "";
+  const applicationDateMatch = subject.match(/([^_]*)_/);
+  const applicationDate = applicationDateMatch ? applicationDateMatch[1] : "";
   const from = message_data.getFrom();
-  const fromName = from.match(/"([^"]*)"/)[1]
+  const fromName = from.match(/"([^"]*)"/)[1];
   const date_time = Utilities.formatDate(message_data.getDate(), "JST", "yyyy/MM/dd kk:mm");
   const date = Utilities.formatDate(message_data.getDate(), "JST", "yyyy/MM/dd");
 
@@ -97,8 +99,8 @@ function application(message_data, folderId, webhookURL) {
   let folder = DriveApp.getFolderById(folderId);
   let f_Names = [];
   let fileUrls = [];
-  for (var k = 0; k < attachments.length; k++) {
-    var attachment = attachments[k];
+  for (let k = 0; k < attachments.length; k++) {
+    let attachment = attachments[k];
     let fileName = attachment.getName();
 
     // 添付ファイル名にキーワードが含まれているか確認
@@ -150,7 +152,7 @@ function application(message_data, folderId, webhookURL) {
 
   }
 
-  if (f_Names) {
+  if (f_Names.length > 0) {
     let value = "";
     for (let i = 0; i < f_Names.length; i++) {
       value += `- [${f_Names[i]}](${fileUrls[i]})\n`
