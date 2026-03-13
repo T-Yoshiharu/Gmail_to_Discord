@@ -43,8 +43,8 @@ function mail_ib() {
         values.push(record);
         unsend = true;
 
-        // 機材借用申請の場合に追加の処理をする
-        if (subject.includes('機材借用申請')) {
+        // 機材借用申請の場合に追加の処理をする #機材借用申請 -> 機材借用 に変更
+        if (subject.includes('機材借用')) {
           const folderId = IDs.applicationFolder_id;
           const application_Webhook = IDs.application_Webhook;
           application(message, folderId, application_Webhook);
